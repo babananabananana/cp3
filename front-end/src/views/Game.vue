@@ -1,25 +1,22 @@
 <template>
   <div class="about">
   <div id="start" v-if="gameState === 0">
-    <form class = "pure-form">
-      <input v-model="user" placeholder="Name"/>
-    </form>
     <img v-on:click="showGame" src="/images/start.png">
   </div>
   <div id = "game" v-if="gameState === 1 || gameState ==2">
     <p style="text-align: center; font-size: 30px;">{{formattedElapsedTime}}</p>
     <p id="fast">{{fastestUser.name}}: {{fastestClicks}}</p>
     <p id="slow">{{slowerUser.name}}: {{slowerClicks}}</p>
-    <p id="user">{{user}}: {{userClicks}}</p>
+    <p id="user">{{myUser.firstName}}: {{userClicks}}</p>
     <img v-on:click.once="startGame" v-on:click="buttonPress" draggable="false" src="/images/button2.png">
   </div>
   <div id = "winState" v-if="gameState ==3">
-    <h1> {{user}}, your time is {{totalTime}} seconds!</h1>
+    <h1> {{myUser.firstName}}, your time is {{totalTime}} seconds!</h1>
     <h2> LEADERBOARD </h2>
     <p style="font-style: italic;">Get in the top 10 to be put on the Leaderboard.</p>
     <ol>
-      <li v-for="user in topUsers" :key="user.id">
-        {{user.name}}: {{user.time / 1000}} sec
+      <li v-for="time in topTimes" :key="time.id">
+        {{time.name}}: {{time.time / 1000}} sec
       </li>
     </ol>
   </div>
@@ -40,16 +37,20 @@ export default {
     random: 0,
     elapsedTime:0,
     timer: undefined,
-    users: [],
+    times: [],
     clickAmt: 10,
     }
   },
   created(){
     this.getScores();
+    this.getUser();
   },
   components: {
   },
   computed: {
+  myUser() {
+    return this.$root.$data.user;
+  },
     formattedElapsedTime(){
       const date = new Date(null);
       date.setSeconds(this.elapsedTime /1000)
@@ -59,35 +60,35 @@ export default {
     totalTime() {
       return this.elapsedTime / 1000;
     },
-    sortUsers() {
+    sortTimes() {
     this.getScores();
-    return this.users.slice(0).sort(function(a,b){
+    return this.times.slice(0).sort(function(a,b){
       return parseInt(a.time) - parseInt(b.time);
     });
     },
-    topUsers() {
-      return this.sortUsers.slice([0], [10]);
+    topTimes() {
+      return this.sortTimes.slice([0], [10]);
     },
     fastestUser(){
-      if(this.topUsers.length === 0){
+      if(this.topTimes.length < 1){
         return {
           name: "Bobby",
-          time: 10000,
+          time: 2000,
         }
       }
-      return this.topUsers[0];
+      return this.topTimes[0];
     },
     fastestTime(){
-      return this.topUsers[0].time
+      return this.fastestUser.time
     },
     slowerUser(){
-      if(this.topUsers.length < 10){
+      if(this.topTimes.length < 10){
         return {
           name: "Bobby",
-          time: 3000,
+          time: 4000,
         }
       }
-      else {return this.topUsers[9];}
+      else {return this.topTimes[9];}
     },
     slowerTime(){
       return this.slowerUser.time
@@ -96,6 +97,18 @@ export default {
   watch: {
   },
   methods:{
+  formatTimeDate(date){
+    return date.substr(5,5);
+  },
+
+  async getUser() {
+    try {
+      let response = await axios.get('/api/user');
+      this.$root.$data.user = response.data.user;
+    } catch (error) {
+      this.$root.$data.user = null;
+    }
+  },
     startTimer(){
       this.timer = setInterval(() => {
         this.elapsedTime += 10;
@@ -150,24 +163,23 @@ export default {
     },
     async addScore(){
       try{
-        await axios.post('/api/user', {
-          name: this.user,
+        await axios.post('/api/time', {
           time: this.elapsedTime,
+          name: this.myUser.firstName +" " + this.myUser.lastName
         });
-        this.elapsedTime = 0;
         await this.getScores();
         }catch(error){
           console.log(error);
         }
     },
-  async getScores(){
-    try{
-      const response = await axios.get("/api/user");
-      this.users = response.data;
-    } catch(error) {
-      console.log(error);
+    async getScores(){
+      try{
+        const response = await axios.get("/api/time/all");
+        this.times = response.data;
+      } catch(error) {
+        console.log(error);
+      }
     }
-  }
   }
 }
 </script>

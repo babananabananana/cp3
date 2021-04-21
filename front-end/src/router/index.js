@@ -16,10 +16,10 @@ const routes = [
     component: () => import(/* webpackChunkName: "about" */ '../views/Game.vue')
   },
   {
-    path: '/Admin',
-    name: 'Admin',
-    component: () => import(/* webpackChunkName: "about" */ '../views/Admin.vue')
-  }
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: () => import(/* webpackChunkName: "about" */ '../views/Dashboard.vue')
+  },
 ]
 
 const router = new VueRouter({

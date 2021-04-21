@@ -7,13 +7,33 @@
       </router-link>
     </div>
       <h1><router-link to="/" id = "logo" style = "color:#000;">Button Masher</router-link></h1>
+      <nav>
+      <router-link to="/dashboard">Dash<i class="fas fa-user"></i></router-link> |
       <router-link to="/">Home</router-link> |
       <router-link to="/game">Game</router-link> |
-      <router-link to="/admin">Admin</router-link>
+      <router-link to="/dashboard"><a @click="logout">Logout</a></router-link>
+      </nav>
     </div>
     <router-view/>
   </div>
 </template>
+
+<script>
+import axios from 'axios';
+export default {
+
+methods:  {
+async logout() {
+  try {
+    await axios.delete("/api/user");
+    this.$root.$data.user = null;
+  } catch (error) {
+    this.$root.$data.user = null;
+  }
+},
+}
+}
+</script>
 
 <style>
 #app {

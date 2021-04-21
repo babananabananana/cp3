@@ -1,18 +1,13 @@
 <template>
   <div id="home">
-  <div id = "description">
-    <p>Button Masher is an incredibly innovative and new concept.
-    You press start game and you mash the button as fast as you can.
-    That's it. Good luck!</p>
-  </div>
   <h2>LEADERBOARD</h2>
   <p style="font-style: italic;">Get in the top 10 to be put on the Leaderboard.</p>
   <ol>
-    <li v-for="user in topUsers" :key="user.id">
-      {{user.name}}: {{user.time/1000}} sec 
+    <li v-for="time in topTimes" :key="time.id">
+    {{time.name}}: {{time.time / 1000}} sec
     </li>
-  </ol>
-  </div>
+    </ol>
+    </div>
 </template>
 
 <script>
@@ -22,54 +17,65 @@ export default {
   data() {
     return{
     user: "",
-    users: [],
+    times: [],
     }
   },
   created() {
     this.getScores();
+    this.getUser();
   },
   computed:{
-    sortUsers() {
-    return this.users.slice(0).sort(function(a,b){
+    sortTimes() {
+    return this.times.slice(0).sort(function(a,b){
       return parseInt(a.time) - parseInt(b.time);
     });
     },
-    topUsers() {
-      return this.sortUsers.slice([0], [10]);
+    topTimes() {
+      return this.sortTimes.slice([0], [10]);
     }
   },
   methods:  {
+  formatTimeDate(date){
+    return date.substr(5,5);
+  },
+  async getUser() {
+    try {
+      let response = await axios.get('/api/user');
+      this.$root.$data.user = response.data.user;
+    } catch (error) {
+      this.$root.$data.user = null;
+    }
+  },
   async getScores(){
     try{
-      const response = await axios.get("/api/user");
-      this.users = response.data;
+      const response = await axios.get("/api/time/all");
+      this.times = response.data;
     } catch(error) {
       console.log(error);
     }
   }
   }
+    }
+  </script>
 
+  <style scoped>
+
+  #id {
+    width: 50%;
   }
-</script>
 
-<style scoped>
+  #home ol {
+    margin: auto;
+    width: 50%;
+    font-size: 30px;
+    justify-content: center;
+    border:1px solid #222;
+    padding:3px;
+  }
+  #home li {
+    padding: 4px;
+    border:1px solid #AAA;
+    background-color:#CCC;
+  }
 
-#id {
-  width: 50%;
-}
-
-#home ol {
-  margin: auto;
-  width: 50%;
-  font-size: 30px;
-  justify-content: center;
-  border:1px solid #222;
-  padding:3px;
-}
-#home li {
-  padding: 4px;
-  border:1px solid #AAA;
-  background-color:#CCC;
-}
-
-</style>
+  </style>
